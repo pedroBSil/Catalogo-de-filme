@@ -1,33 +1,53 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const apiKey = '6a12e3e34ede255453980e164f46c6d5';
-    const apiUrl = `http://www.omdbapi.com/?s=batman&apikey=${apiKey}`;
-  
-    fetch(apiUrl)
-      .then(response => response.json())
-      .then(data => {
-        const moviesContainer = document.getElementById('movies-container');
-  
-        data.Search.forEach(movie => {
-          const movieCard = document.createElement('div');
-          movieCard.classList.add('movie-card');
-  
-          const title = document.createElement('h3');
-          title.textContent = movie.Title;
-  
-          const year = document.createElement('p');
-          year.textContent = `Ano: ${movie.Year}`;
-  
-          const poster = document.createElement('img');
-          poster.src = movie.Poster;
-          poster.alt = movie.Title;
-  
-          movieCard.appendChild(title);
-          movieCard.appendChild(year);
-          movieCard.appendChild(poster);
-  
-          moviesContainer.appendChild(movieCard);
-        });
-      })
-      .catch(error => console.error('Erro ao buscar filmes:', error));
-  });
-  
+const apiKey = '6a12e3e34ede255453980e164f46c6d5';
+let apiUrl = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${apiKey}`;
+
+const movieContainer = document.getElementById('movie-container');
+const searchInput = document.getElementById('search');
+
+async function fetchMovies() {
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        displayMovies(data.results);
+    } catch (error) {
+        console.error('Error fetching movies:', error);
+    }
+}
+
+function displayMovies(movies) {
+    movieContainer.innerHTML = '';
+
+    movies.forEach(movie => {
+        const movieCard = document.createElement('div');
+        movieCard.classList.add('movie-card');
+
+        const posterUrl = `https://image.tmdb.org/t/p/w500/${movie.poster_path}`;
+
+        movieCard.innerHTML = `
+            <img src="${posterUrl}" alt="${movie.title}">
+            <div class="movie-info">
+                <h3>${movie.title}</h3>
+                <p>${movie.release_date}</p>
+                <button onclick="showSynopsis(${movie.id})">Show Synopsis</button>
+            </div>
+        `;
+
+        movieContainer.appendChild(movieCard);
+    });
+}
+
+async function searchMovies() {
+    const searchTerm = searchInput.value;
+
+    if (searchTerm) {
+        apiUrl = `https://api.themoviedb.org/3/search/movie?query=${searchTerm}&api_key=${apiKey}`;
+        fetchMovies();
+    }
+}
+
+async function showSynopsis(movieId) {
+  window.location.href = `movie-details.html?id=${movieId}`;
+}
+
+fetchMovies();
